@@ -18,9 +18,9 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(HttpMethod.GET, "/authorized").permitAll()
                         .pathMatchers(HttpMethod.GET, "/actuator/**").permitAll()
-                        .pathMatchers(HttpMethod.POST, "/api/v1/users/auth").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/v1/users/auth","/api/v1/users").permitAll()
                         .pathMatchers(HttpMethod.GET,"/api/v1/users/**", "/api/v1/posts/**", "/api/v1/comments/**","/api/v1/notifications/**").hasAnyAuthority("SCOPE_read")
-                        .pathMatchers(HttpMethod.POST, "/api/v1/users", "/api/v1/posts", "/api/v1/comments", "/api/likes", "/api/followers","/api/v1/notifications").hasAnyAuthority("SCOPE_read", "SCOPE_write")
+                        .pathMatchers(HttpMethod.POST, "/api/v1/users/admin", "/api/v1/posts", "/api/v1/comments", "/api/likes", "/api/followers","/api/v1/notifications").hasAnyAuthority("SCOPE_read", "SCOPE_write")
                         .pathMatchers(HttpMethod.POST, "/api/v1/notifications/all").hasAnyAuthority("SCOPE_read", "SCOPE_write")
                         .pathMatchers(HttpMethod.PUT, "/api/v1/users/{id}", "/api/v1/posts/{id}", "/api/v1/comments/{id}","/api/v1/notifications/{id}/read/{value}").hasAnyAuthority("SCOPE_read", "SCOPE_write")
                         .pathMatchers(HttpMethod.DELETE, "/api/v1/users/{id}", "/api/v1/posts/{id}", "/api/v1/comments/{id}").hasAuthority("SCOPE_write")
