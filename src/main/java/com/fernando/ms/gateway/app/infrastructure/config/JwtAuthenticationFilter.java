@@ -46,7 +46,6 @@ public class JwtAuthenticationFilter implements WebFilter {
                         JwtParser jwtParser = Jwts.parserBuilder().setSigningKey(publicKey).build();
                         Claims claims = jwtParser.parseClaimsJws(token).getBody();
                         Long userId = claims.get("user_id", Long.class);
-
                         ServerHttpRequest modifiedRequest = exchange.getRequest()
                                 .mutate()
                                 .header("X-User-Id", String.valueOf(userId))
@@ -70,10 +69,8 @@ public class JwtAuthenticationFilter implements WebFilter {
                             .filter(k -> Objects.equals(k.get("kid"), kid))
                             .findFirst()
                             .orElseThrow(() -> new IllegalArgumentException("Clave no encontrada en JWKS para kid: " + kid));
-
                     String n = (String) keyData.get("n");
                     String e = (String) keyData.get("e");
-
                     byte[] modulusBytes = Base64.getUrlDecoder().decode(n);
                     byte[] exponentBytes = Base64.getUrlDecoder().decode(e);
 

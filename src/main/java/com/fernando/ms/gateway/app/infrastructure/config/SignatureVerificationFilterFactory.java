@@ -38,7 +38,7 @@ public class SignatureVerificationFilterFactory extends AbstractGatewayFilterFac
             public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
                 String signature = exchange.getRequest().getHeaders().getFirst(SIGNATURE_HEADER);
                 String method = exchange.getRequest().getMethod().toString();
-                if(exchange.getRequest().getPath().toString().equals("/v1/users/auth")){
+                if(exchange.getRequest().getPath().toString().equals("/v1/users/auth")||exchange.getRequest().getPath().toString().equals("/authorized")){
                     return chain.filter(exchange);
                 }
 
