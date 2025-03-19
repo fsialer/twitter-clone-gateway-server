@@ -82,8 +82,8 @@ spring:
         registration:
           gateway-service:
             provider: spring
-            client-id: gateway-service
-            client-secret: 12345
+            client-id: gateway-service2
+            client-secret: secret
             authorization-grant-type: authorization_code
             redirect-uri: ${REDIRECT_URL:http://localhost:8090/authorized}
             scope:
@@ -91,7 +91,7 @@ spring:
               - profile
               - read
               - write
-            client-name: gateway-service
+#            client-name: gateway-service
         provider:
           spring:
             issuer-uri: ${AUTH_SERVER:http://localhost:9000}
