@@ -7,18 +7,24 @@ spring:
     default-property-inclusion: NON_NULL
   cloud:
     gateway:
+      default-filter:
+        - TokenRelay=
       routes:
-        - id: twitter-clone-users-service
-          uri: ${USERS_URL:http://localhost:8080/v1/users}
-          predicates:
-            - Path=/api/v1/users/**
-          filters:
-            - StripPrefix=1
-            - name: SignatureVerificationFilterFactory
-            - name: CircuitBreaker
-              args:
-                name: userServiceCB
-                fallbackUri: forward:/fallback/user
+#        - id: angular
+#          uri: http://localhost:4200
+#          predicates:
+#            - Path=/**
+#        - id: twitter-clone-users-service
+#          uri: ${USERS_URL:http://localhost:8080/v1/users}
+#          predicates:
+#            - Path=/api/v1/users/**
+#          filters:
+#            - StripPrefix=1
+#            - name: SignatureVerificationFilterFactory
+#            - name: CircuitBreaker
+#              args:
+#                name: userServiceCB
+#                fallbackUri: forward:/fallback/user
 
         - id:  twitter-clone-posts-service
           uri: ${POSTS_URL:http://localhost:8081/v1/posts}
@@ -26,7 +32,7 @@ spring:
             - Path=/api/v1/posts/**
           filters:
             - StripPrefix=1
-            - name: SignatureVerificationFilterFactory
+            #- name: SignatureVerificationFilterFactory
             - name: CircuitBreaker
               args:
                 name: postServiceCB
@@ -37,41 +43,40 @@ spring:
             - Path=/api/v1/comments/**
           filters:
             - StripPrefix=1
-            - name: SignatureVerificationFilterFactory
+            #- name: SignatureVerificationFilterFactory
             - name: CircuitBreaker
               args:
                 name: commentServiceCB
                 fallbackUri: forward:/fallback/comment
-        - id: twitter-clone-likes-service
-          uri: ${LIKES_URL:http://localhost:8083/v1/likes}
-          predicates:
-            - Path=/api/v1/likes/**
-          filters:
-            - StripPrefix=1
-            - name: SignatureVerificationFilterFactory
-            - name: CircuitBreaker
-              args:
-                name: likeServiceCB
-                fallbackUri: forward:/fallback/like
+#        - id: twitter-clone-likes-service
+#          uri: ${LIKES_URL:http://localhost:8083/v1/likes}
+#          predicates:
+#            - Path=/api/v1/likes/**
+#          filters:
+#            - StripPrefix=1
+#            - name: SignatureVerificationFilterFactory
+#            - name: CircuitBreaker
+#              args:
+#                name: likeServiceCB
+#                fallbackUri: forward:/fallback/like
         - id: twitter-clone-followers-service
           uri: ${FOLLOWERS_URL:http://localhost:8084/v1/followers}
           predicates:
             - Path=/api/v1/followers/**
           filters:
             - StripPrefix=1
-            - name: SignatureVerificationFilterFactory
+            #- name: SignatureVerificationFilterFactory
             - name: CircuitBreaker
               args:
                 name: followerServiceCB
                 fallbackUri: forward:/fallback/follower
-        - id: twitter-clone-notifications-service
-          uri: ${NOTIFICATIONS_URL:http://localhost:8085/v1/notifications}
-          predicates:
-            - Path=/api/v1/notifications/**
-          filters:
-            - StripPrefix=1
-            - name: SignatureVerificationFilterFactory
-
+#        - id: twitter-clone-notifications-service
+#          uri: ${NOTIFICATIONS_URL:http://localhost:8085/v1/notifications}
+#          predicates:
+#            - Path=/api/v1/notifications/**
+#          filters:
+#            - StripPrefix=1
+#            - name: SignatureVerificationFilterFactory
   security:
     oauth2:
       resourceserver:
@@ -80,17 +85,34 @@ spring:
           #jwk-set-uri: ${AUTH_SERVER:http://localhost:9000}/oauth2/jwks
       client:
         registration:
-          gateway-service:
+#          gateway:
+#            provider: spring
+#            client-id: gateway-service2
+#            client-secret: secret
+#            scope: openid, profile
+#            authorization-grant-type: authorization_code
+#            redirect-uri: http://127.0.0.1:8090/login/oauth2/code/gateway
+#          gateway-service:
+#            provider: spring
+#            client-id: gateway-service2
+#            client-secret: secret
+#            authorization-grant-type: authorization_code
+#            redirect-uri: ${REDIRECT_URL:http://localhost:8090/authorized}
+#            scope:
+#              - openid
+#              - profile
+#              - read
+#              - write
+          angular-cli:
             provider: spring
-            client-id: gateway-service2
+            client-id: angular-cli
             client-secret: secret
-            authorization-grant-type: authorization_code
-            redirect-uri: ${REDIRECT_URL:http://localhost:8090/authorized}
+            authorization-grant-type:
+              - authorization_code
+            redirect-uri: ${REDIRECT_URL:http://localhost:4200/}
             scope:
               - openid
               - profile
-              - read
-              - write
 #            client-name: gateway-service
         provider:
           spring:
@@ -103,12 +125,12 @@ management:
 resilience4j:
   circuitbreaker:
     instances:
-      userServiceCB:
-        slidingWindowSize: 10
-        permittedNumberOfCallsInHalfOpenState: 5
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10000
-        registerHealthIndicator: true
+#      userServiceCB:
+#        slidingWindowSize: 10
+#        permittedNumberOfCallsInHalfOpenState: 5
+#        failureRateThreshold: 50
+#        waitDurationInOpenState: 10000
+#        registerHealthIndicator: true
       postServiceCB:
         slidingWindowSize: 10
         permittedNumberOfCallsInHalfOpenState: 5
@@ -121,12 +143,12 @@ resilience4j:
         failureRateThreshold: 50
         waitDurationInOpenState: 10000
         registerHealthIndicator: true
-      likeServiceCB:
-        slidingWindowSize: 10
-        permittedNumberOfCallsInHalfOpenState: 5
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10000
-        registerHealthIndicator: true
+#      likeServiceCB:
+#        slidingWindowSize: 10
+#        permittedNumberOfCallsInHalfOpenState: 5
+#        failureRateThreshold: 50
+#        waitDurationInOpenState: 10000
+#        registerHealthIndicator: true
       followerServiceCB:
         slidingWindowSize: 10
         permittedNumberOfCallsInHalfOpenState: 5
