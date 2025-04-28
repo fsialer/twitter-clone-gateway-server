@@ -1,4 +1,4 @@
-package com.fernando.ms.gateway.app.twitter_clone_gateway_server;
+package com.fernando.ms.gateway.app;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,0 +1,74 @@
+server:
+  port: 8090
+spring:
+  application:
+    name: twitter-clone-gateway-server
+  jackson:
+    default-property-inclusion: NON_NULL
+  cloud:
+    gateway:
+      default-filter:
+        - TokenRelay=
+      routes:
+        - id: twitter-clone-users-service
+          uri: ${USERS_URL:http://localhost:8080/v1/users}
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - StripPrefix=1
+        - id:  twitter-clone-posts-service
+          uri: ${POSTS_URL:http://localhost:8081/v1/posts}
+          predicates:
+            - Path=/api/v1/posts/**
+          filters:
+            - StripPrefix=1
+        - id: twitter-clone-comments-service
+          uri: ${COMMENTS_URL:http://localhost:8082/v1/comments}
+          predicates:
+            - Path=/api/v1/comments/**
+          filters:
+            - StripPrefix=1
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_SERVER:http://localhost:9000}
+      client:
+        registration:
+          angular-cli:
+            provider: spring
+            client-id: angular-cli
+            client-secret: secret
+            authorization-grant-type:
+              - authorization_code
+            redirect-uri: ${REDIRECT_URL:http://localhost:4200/}
+            scope:
+              - openid
+              - profile
+        provider:
+          spring:
+            issuer-uri: ${AUTH_SERVER:http://localhost:9000}
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+auth-service:
+  url: ${AUTH_SERVER:http://localhost:9000}
+client-app:
+  url: ${APP_URL:http://localhost:4200}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, info, prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    enable:
+      jvm: true
+      logback: true
+    export:
+      prometheus:
+        enabled: true
