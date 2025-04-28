@@ -36,3 +36,4 @@ APP_URL=http://localhost:4200
 * Github Actions
 * Docker
 * Actuator
+* Prometheus
