@@ -24,80 +24,53 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-//    @Bean
-//    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,ReactiveClientRegistrationRepository clientRegistrationRepository) {
-//        http
-//                .authorizeExchange(exchanges -> exchanges
-//                        .pathMatchers(HttpMethod.GET, "/authorized").permitAll()
-//                        .pathMatchers(HttpMethod.GET, "/actuator/**").permitAll()
-//                        .pathMatchers(HttpMethod.POST, "/api/v1/users/auth","/api/v1/users").permitAll()
-//                        .pathMatchers(HttpMethod.GET,"/api/v1/users/**", "/api/v1/posts/**", "/api/v1/comments/**","/api/v1/notifications/**").hasAnyAuthority("SCOPE_read")
-//                        .pathMatchers(HttpMethod.POST, "/api/v1/users/admin", "/api/v1/posts", "/api/v1/comments", "/api/likes", "/api/followers","/api/v1/notifications").hasAnyAuthority("SCOPE_read", "SCOPE_write")
-//                        .pathMatchers(HttpMethod.POST, "/api/v1/notifications/all").hasAnyAuthority("SCOPE_read", "SCOPE_write")
-//                        .pathMatchers(HttpMethod.PUT, "/api/v1/users/{id}", "/api/v1/posts/{id}", "/api/v1/comments/{id}","/api/v1/notifications/{id}/read/{value}").hasAnyAuthority("SCOPE_read", "SCOPE_write")
-//                        .pathMatchers(HttpMethod.DELETE, "/api/v1/users/{id}", "/api/v1/posts/{id}", "/api/v1/comments/{id}").hasAuthority("SCOPE_write")
-//                        .anyExchange().authenticated()
-//                )
-//                .csrf(ServerHttpSecurity.CsrfSpec::disable)
-////                .oauth2Login(login->login.loginPage("/oauth2/authorization/gateway-service"))
-////                .oauth2Client(withDefaults())
-////                .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()));
-//                .oauth2Login(oauth2 -> oauth2
-//                        .authenticationSuccessHandler((webFilterExchange, authentication) -> {
-//                            // Evita bloqueo con una respuesta reactiva
-//                            return webFilterExchange.getExchange().getResponse().setComplete();
-//                        })
-//                )
-//                //.oauth2Client(withDefaults())
-//                .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()))
-//                .logout(logout -> logout.logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository)))
-//            ;
-//
-//        return http.build();
-//    }
-//
-//    @Bean
-//    public ServerLogoutSuccessHandler oidcLogoutSuccessHandler(ReactiveClientRegistrationRepository clientRegistrationRepository) {
-//        OidcClientInitiatedServerLogoutSuccessHandler oidcLogoutSuccessHandler =
-//                new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
-//        oidcLogoutSuccessHandler.setPostLogoutRedirectUri("{baseUrl}/");
-//        return oidcLogoutSuccessHandler;
-//    }
-//
-//    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
-//    private String issuerUri;
-//
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http)throws Exception{
-//        return http
-//                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-//                .oauth2ResourceServer(oauth2 -> oauth2
-//                        .jwt(jwt -> jwt.decoder(JwtDecoders.fromIssuerLocation(issuerUri))))
-//                .build();
-//    }
-
 @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
 private String issuerUri;
 private final ReactiveClientRegistrationRepository repository;
 
     @Bean
-    public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http)throws Exception{
-        //http.cors(Customizer.withDefaults());
+    public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http){
         return http
                 .cors(Customizer.withDefaults())
                 .authorizeExchange(auth ->auth
-                        //.pathMatchers(HttpMethod.GET, "/resource/user").hasAnyAuthority("ROLE_USER","OIDC_USER")
-                        //.pathMatchers(HttpMethod.GET, "/resource/user").permitAll()
-                       // .pathMatchers(HttpMethod.GET, "/resource/admin").hasAnyAuthority("ROLE_ADMIN")
-                        //pathMatchers(HttpMethod.GET, "/authorized").permitAll()
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/actuator/**").permitAll()
-                        .pathMatchers(HttpMethod.POST, "/api/v1/users/auth","/api/v1/users").permitAll()
-                        .pathMatchers(HttpMethod.GET,"/api/v1/users/**", "/api/v1/posts/**", "/api/v1/comments/**","/api/v1/notifications/**").hasAnyAuthority("SCOPE_read","ROLE_USER","ROLE_ADMIN")
-                        .pathMatchers(HttpMethod.POST, "/api/v1/users/admin", "/api/v1/posts", "/api/v1/comments", "/api/likes", "/api/followers","/api/v1/notifications").hasAnyAuthority("SCOPE_read", "SCOPE_write","ROLE_USER","ROLE_ADMIN")
-                        .pathMatchers(HttpMethod.POST, "/api/v1/notifications/all").hasAnyAuthority("SCOPE_read", "SCOPE_write","ROLE_USER","ROLE_ADMIN")
-                        .pathMatchers(HttpMethod.PUT, "/api/v1/users/{id}", "/api/v1/posts/{id}", "/api/v1/comments/{id}","/api/v1/notifications/{id}/read/{value}").hasAnyAuthority("SCOPE_read", "SCOPE_write","ROLE_USER","ROLE_ADMIN")
-                        .pathMatchers(HttpMethod.DELETE, "/api/v1/users/{id}", "/api/v1/posts/{id}", "/api/v1/comments/{id}").hasAnyAuthority("SCOPE_write","ROLE_USER","ROLE_ADMIN")
+                        .pathMatchers(HttpMethod.GET,
+                                    "/api/v1/posts",
+                                "/api/v1/users",
+                                "/api/v1/users/{id}",
+                                "/api/v1/comments"
+                        ).hasAuthority("ROLE_ADMIN")
+                        .pathMatchers(HttpMethod.GET,
+                                "/api/v1/posts/{id}",
+                                "/api/v1/posts/{id}/verify",
+                                "/api/v1/users/{id}/verify",
+                                "/api/v1/users/find-by-ids",
+                                "/api/v1/users/me",
+                                "/api/v1/users/{id}"
+                        ).hasAnyAuthority("ROLE_USER","OIDC_USER")
+                        .pathMatchers(HttpMethod.GET,
+                                "/api/v1/comments/{id}",
+                                "/api/v1/comments/{id}/verify"
+                        ).hasAnyAuthority("ROLE_USER","OIDC_USER")
+                        .pathMatchers(HttpMethod.POST,  "/api/v1/users").hasAnyAuthority("ROLE_ADMIN")
+                        .pathMatchers(HttpMethod.POST,
+                                "/api/v1/posts/**",
+                                "/api/v1/comments/**",
+                                "/api/v1/users/follow"
+                        ).hasAnyAuthority("ROLE_USER","OIDC_USER")
+                        .pathMatchers(HttpMethod.PUT,  "/api/v1/users/{id}").hasAnyAuthority("ROLE_ADMIN")
+                        .pathMatchers(HttpMethod.PUT,
+                                "/api/v1/posts/{id}",
+                                "/api/v1/comments/{id}",
+                                "/api/v1/users/me"
+                        ).hasAnyAuthority("ROLE_USER","OIDC_USER")
+                        .pathMatchers(HttpMethod.DELETE,  "/api/v1/users/{id}").hasAnyAuthority("ROLE_ADMIN")
+                        .pathMatchers(HttpMethod.DELETE,
+                                "/api/v1/posts/{id}",
+                                "/api/v1/comments/{id}",
+                                "/api/v1/posts/data/{id}",
+                                "/api/v1/users/unfollow/{id}"
+                        ).hasAnyAuthority("ROLE_USER","OIDC_USER")
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
@@ -106,8 +79,6 @@ private final ReactiveClientRegistrationRepository repository;
                 .oauth2Login(Customizer.withDefaults())
                 .oauth2Client(Customizer.withDefaults())
                 .logout(logoutSpec -> logoutSpec.logoutUrl("/logout").logoutSuccessHandler(successHandler(repository)))
-
-
                 .build();
     }
 

@@ -10,99 +10,31 @@ spring:
       default-filter:
         - TokenRelay=
       routes:
-#        - id: angular
-#          uri: http://localhost:4200
-#          predicates:
-#            - Path=/**
-#        - id: twitter-clone-users-service
-#          uri: ${USERS_URL:http://localhost:8080/v1/users}
-#          predicates:
-#            - Path=/api/v1/users/**
-#          filters:
-#            - StripPrefix=1
-#            - name: SignatureVerificationFilterFactory
-#            - name: CircuitBreaker
-#              args:
-#                name: userServiceCB
-#                fallbackUri: forward:/fallback/user
-
+        - id: twitter-clone-users-service
+          uri: ${USERS_URL:http://localhost:8080/v1/users}
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - StripPrefix=1
         - id:  twitter-clone-posts-service
           uri: ${POSTS_URL:http://localhost:8081/v1/posts}
           predicates:
             - Path=/api/v1/posts/**
           filters:
             - StripPrefix=1
-            #- name: SignatureVerificationFilterFactory
-            - name: CircuitBreaker
-              args:
-                name: postServiceCB
-                fallbackUri: forward:/fallback/post
         - id: twitter-clone-comments-service
           uri: ${COMMENTS_URL:http://localhost:8082/v1/comments}
           predicates:
             - Path=/api/v1/comments/**
           filters:
             - StripPrefix=1
-            #- name: SignatureVerificationFilterFactory
-            - name: CircuitBreaker
-              args:
-                name: commentServiceCB
-                fallbackUri: forward:/fallback/comment
-#        - id: twitter-clone-likes-service
-#          uri: ${LIKES_URL:http://localhost:8083/v1/likes}
-#          predicates:
-#            - Path=/api/v1/likes/**
-#          filters:
-#            - StripPrefix=1
-#            - name: SignatureVerificationFilterFactory
-#            - name: CircuitBreaker
-#              args:
-#                name: likeServiceCB
-#                fallbackUri: forward:/fallback/like
-        - id: twitter-clone-followers-service
-          uri: ${FOLLOWERS_URL:http://localhost:8084/v1/followers}
-          predicates:
-            - Path=/api/v1/followers/**
-          filters:
-            - StripPrefix=1
-            #- name: SignatureVerificationFilterFactory
-            - name: CircuitBreaker
-              args:
-                name: followerServiceCB
-                fallbackUri: forward:/fallback/follower
-#        - id: twitter-clone-notifications-service
-#          uri: ${NOTIFICATIONS_URL:http://localhost:8085/v1/notifications}
-#          predicates:
-#            - Path=/api/v1/notifications/**
-#          filters:
-#            - StripPrefix=1
-#            - name: SignatureVerificationFilterFactory
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${AUTH_SERVER:http://localhost:9000}
-          #jwk-set-uri: ${AUTH_SERVER:http://localhost:9000}/oauth2/jwks
       client:
         registration:
-#          gateway:
-#            provider: spring
-#            client-id: gateway-service2
-#            client-secret: secret
-#            scope: openid, profile
-#            authorization-grant-type: authorization_code
-#            redirect-uri: http://127.0.0.1:8090/login/oauth2/code/gateway
-#          gateway-service:
-#            provider: spring
-#            client-id: gateway-service2
-#            client-secret: secret
-#            authorization-grant-type: authorization_code
-#            redirect-uri: ${REDIRECT_URL:http://localhost:8090/authorized}
-#            scope:
-#              - openid
-#              - profile
-#              - read
-#              - write
           angular-cli:
             provider: spring
             client-id: angular-cli
@@ -113,59 +45,15 @@ spring:
             scope:
               - openid
               - profile
-#            client-name: gateway-service
         provider:
           spring:
             issuer-uri: ${AUTH_SERVER:http://localhost:9000}
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, metrics, circuitbreakers
-resilience4j:
-  circuitbreaker:
-    instances:
-#      userServiceCB:
-#        slidingWindowSize: 10
-#        permittedNumberOfCallsInHalfOpenState: 5
-#        failureRateThreshold: 50
-#        waitDurationInOpenState: 10000
-#        registerHealthIndicator: true
-      postServiceCB:
-        slidingWindowSize: 10
-        permittedNumberOfCallsInHalfOpenState: 5
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10000
-        registerHealthIndicator: true
-      commentServiceCB:
-        slidingWindowSize: 10
-        permittedNumberOfCallsInHalfOpenState: 5
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10000
-        registerHealthIndicator: true
-#      likeServiceCB:
-#        slidingWindowSize: 10
-#        permittedNumberOfCallsInHalfOpenState: 5
-#        failureRateThreshold: 50
-#        waitDurationInOpenState: 10000
-#        registerHealthIndicator: true
-      followerServiceCB:
-        slidingWindowSize: 10
-        permittedNumberOfCallsInHalfOpenState: 5
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10000
-        registerHealthIndicator: true
-  timelimiter:
-    instances:
-      bookService:
-        timeoutDuration: 3s
-
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
-
 auth-service:
   url: ${AUTH_SERVER:http://localhost:9000}
-key-secret: ${KEY_SECRET:tu_clave_secreta}
+client-app:
+  url: ${APP_URL:http://localhost:4200}

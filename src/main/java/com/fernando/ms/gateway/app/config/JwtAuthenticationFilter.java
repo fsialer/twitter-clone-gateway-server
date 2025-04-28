@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -22,7 +23,7 @@ import java.security.spec.KeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.*;
 
-//@Component
+@Component
 public class JwtAuthenticationFilter implements WebFilter {
 
     @Value("${auth-service.url}")
@@ -45,7 +46,7 @@ public class JwtAuthenticationFilter implements WebFilter {
                     try {
                         JwtParser jwtParser = Jwts.parserBuilder().setSigningKey(publicKey).build();
                         Claims claims = jwtParser.parseClaimsJws(token).getBody();
-                        Long userId = claims.get("user_id", Long.class);
+                        String userId = claims.get("user_id", String.class);
                         ServerHttpRequest modifiedRequest = exchange.getRequest()
                                 .mutate()
                                 .header("X-User-Id", String.valueOf(userId))
