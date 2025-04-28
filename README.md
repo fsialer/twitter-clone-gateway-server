@@ -25,6 +25,7 @@ APP_URL=http://localhost:4200
 ## Tabla de recursos
 | NOMBRE                       | RUTA                |  
 |------------------------------|---------------------|
+| Actuator                     | /actuator           |
 | Microservicio de usuarios    | /api/v1/users/**    |
 | Microservicio de posts       | /api/v1/posts/**    |
 | Microservicio de comentarios | /api/v1/comments/** |
@@ -34,3 +35,4 @@ APP_URL=http://localhost:4200
 * Spring cloud gateway
 * Github Actions
 * Docker
+* Actuator

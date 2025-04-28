@@ -57,3 +57,8 @@ auth-service:
   url: ${AUTH_SERVER:http://localhost:9000}
 client-app:
   url: ${APP_URL:http://localhost:4200}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, info
