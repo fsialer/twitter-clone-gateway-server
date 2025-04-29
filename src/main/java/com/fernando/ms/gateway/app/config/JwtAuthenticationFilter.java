@@ -1,9 +1,12 @@
 package com.fernando.ms.gateway.app.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtParser;
-import io.jsonwebtoken.Jwts;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTParser;
+import com.nimbusds.jwt.SignedJWT;
+import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -29,6 +32,7 @@ public class JwtAuthenticationFilter implements WebFilter {
     @Value("${auth-service.url}")
     private String authService;
     private final WebClient webClient = WebClient.create();
+    private final ObjectMapper objectMapper = new ObjectMapper(); // Usar ObjectMapper
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -44,17 +48,36 @@ public class JwtAuthenticationFilter implements WebFilter {
         return getPublicKeyFromJwks(getKidFromToken(token))
                 .flatMap(publicKey -> {
                     try {
-                        JwtParser jwtParser = Jwts.parserBuilder().setSigningKey(publicKey).build();
-                        Claims claims = jwtParser.parseClaimsJws(token).getBody();
-                        String userId = claims.get("user_id", String.class);
+                        // Parsear el token JWT
+                        JWT jwt = JWTParser.parse(token);
+                        if (!(jwt instanceof SignedJWT)) {
+                            return Mono.error(new BadCredentialsException("Token no firmado"));
+                        }
+
+                        SignedJWT signedJWT = (SignedJWT) jwt;
+                        // Verificar la firma del token usando la clave pública
+                        RSASSAVerifier verifier = new RSASSAVerifier(publicKey);
+                        if (!signedJWT.verify(verifier)) {
+                            return Mono.error(new BadCredentialsException("Token inválido"));
+                        }
+
+                        // Obtener los claims
+                        String userId = signedJWT.getJWTClaimsSet().getStringClaim("user_id");
+
+                        // Modificar la solicitud agregando el usuario
                         ServerHttpRequest modifiedRequest = exchange.getRequest()
                                 .mutate()
-                                .header("X-User-Id", String.valueOf(userId))
+                                .header("X-User-Id", userId)
                                 .build();
+
                         ServerWebExchange modifiedExchange = exchange.mutate().request(modifiedRequest).build();
                         return chain.filter(modifiedExchange);
+                    } catch (ExpiredJwtException e) {
+                        return Mono.error(new BadCredentialsException("Token expired: " + e.getMessage()));
+                    } catch (JwtException e) {
+                        return Mono.error(new BadCredentialsException("Error de JWT: " + e.getMessage()));
                     } catch (Exception e) {
-                        return Mono.error(new BadCredentialsException("Error al procesar el token: " + e.getMessage()));
+                        return Mono.error(new BadCredentialsException("Error process token: " + e.getMessage()));
                     }
                 });
     }
@@ -94,9 +117,8 @@ public class JwtAuthenticationFilter implements WebFilter {
             // Decodificar el header del token (Base64 URL Safe)
             String headerJson = new String(Base64.getUrlDecoder().decode(tokenParts[0]));
 
-            // Convertir a un Map para extraer "kid"
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> headerMap = objectMapper.readValue(headerJson, Map.class);
+            // Convertir a un Map usando Jackson
+            Map<String, Object> headerMap = objectMapper.readValue(headerJson, new TypeReference<Map<String, Object>>() {});
 
             // Obtener el kid
             String kid = (String) headerMap.get("kid");
@@ -109,6 +131,4 @@ public class JwtAuthenticationFilter implements WebFilter {
             throw new IllegalArgumentException("Error al obtener el KID del token: " + e.getMessage(), e);
         }
     }
-
-
 }
