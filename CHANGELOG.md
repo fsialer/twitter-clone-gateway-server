@@ -1,3 +1,6 @@
+### [v1.0.3] - 2025-04-28
+### 🦺 Security
+* Delete dependency [jjwt-jackson:0.12.6] for vulnerabilities.
 ### [v1.0.2] - 2025-04-28
 ### 🦺 Security
 * Update dependencies [io.jsonwebtoken:jjwt-jackson:0.12.0]  to [jjwt-jackson:0.12.6] to fix vulnerabilities.
