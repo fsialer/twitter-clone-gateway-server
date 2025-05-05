@@ -24,9 +24,12 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
-private String issuerUri;
-private final ReactiveClientRegistrationRepository repository;
+    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
+    private String issuerUri;
+    private final ReactiveClientRegistrationRepository repository;
+    private static final String ROLE_USER="ROLE_USER";
+    private static final String ROLE_ADMIN="ROLE_ADMIN";
+    private static final String OIDC_USER="OIDC_USER";
 
     @Bean
     public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http){
@@ -34,7 +37,6 @@ private final ReactiveClientRegistrationRepository repository;
                 .cors(Customizer.withDefaults())
                 .authorizeExchange(auth ->auth
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
                         .pathMatchers(HttpMethod.GET,
                                 "/api/v1/posts/{id}",
                                 "/api/v1/posts/{id}/verify",
@@ -43,33 +45,33 @@ private final ReactiveClientRegistrationRepository repository;
                                 "/api/v1/users/me",
                                 "/api/v1/comments/{id}",
                                 "/api/v1/comments/{id}/verify"
-                        ).hasAnyAuthority("ROLE_USER","OIDC_USER")
+                        ).hasAnyAuthority(ROLE_USER,OIDC_USER)
                         .pathMatchers(HttpMethod.GET,
                                 "/api/v1/posts",
                                 "/api/v1/users",
                                 "/api/v1/users/{id}",
                                 "/api/v1/comments"
-                        ).hasAnyAuthority("ROLE_ADMIN")
+                        ).hasAnyAuthority(ROLE_ADMIN)
                         .pathMatchers(HttpMethod.POST,
                                 "/api/v1/posts/**",
                                 "/api/v1/comments/**",
                                 "/api/v1/users/follow"
-                        ).hasAnyAuthority("ROLE_USER","OIDC_USER")
-                        .pathMatchers(HttpMethod.POST,  "/api/v1/users").hasAnyAuthority("ROLE_ADMIN")
+                        ).hasAnyAuthority(ROLE_USER,OIDC_USER)
+                        .pathMatchers(HttpMethod.POST,  "/api/v1/users").hasAnyAuthority(ROLE_ADMIN)
 
                         .pathMatchers(HttpMethod.PUT,
                                 "/api/v1/posts/{id}",
                                 "/api/v1/comments/{id}",
                                 "/api/v1/users/me"
-                        ).hasAnyAuthority("ROLE_USER","OIDC_USER")
-                        .pathMatchers(HttpMethod.PUT,  "/api/v1/users/{id}").hasAnyAuthority("ROLE_ADMIN")
+                        ).hasAnyAuthority(ROLE_USER,OIDC_USER)
+                        .pathMatchers(HttpMethod.PUT,  "/api/v1/users/{id}").hasAnyAuthority(ROLE_ADMIN)
                         .pathMatchers(HttpMethod.DELETE,
                                 "/api/v1/posts/{id}",
                                 "/api/v1/comments/{id}",
                                 "/api/v1/posts/data/{id}",
                                 "/api/v1/users/unfollow/{id}"
-                        ).hasAnyAuthority("ROLE_USER","OIDC_USER")
-                        .pathMatchers(HttpMethod.DELETE,  "/api/v1/users/{id}").hasAnyAuthority("ROLE_ADMIN")
+                        ).hasAnyAuthority(ROLE_USER,OIDC_USER)
+                        .pathMatchers(HttpMethod.DELETE,  "/api/v1/users/{id}").hasAnyAuthority(ROLE_ADMIN)
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
