@@ -2,11 +2,13 @@ package com.fernando.ms.gateway.app.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fernando.ms.gateway.app.exceptions.ErrorException;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 import com.nimbusds.jwt.SignedJWT;
 import io.jsonwebtoken.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -27,6 +29,7 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.*;
 
 @Component
+@Slf4j
 public class JwtAuthenticationFilter implements WebFilter {
 
     @Value("${auth-service.url}")
@@ -73,10 +76,13 @@ public class JwtAuthenticationFilter implements WebFilter {
                         ServerWebExchange modifiedExchange = exchange.mutate().request(modifiedRequest).build();
                         return chain.filter(modifiedExchange);
                     } catch (ExpiredJwtException e) {
+                        log.warn("Token expired");
                         return Mono.error(new BadCredentialsException("Token expired: " + e.getMessage()));
                     } catch (JwtException e) {
-                        return Mono.error(new BadCredentialsException("Error de JWT: " + e.getMessage()));
+                        log.warn("Error in JWT");
+                        return Mono.error(new BadCredentialsException("Error in JWT: " + e.getMessage()));
                     } catch (Exception e) {
+                        log.error("A occurred an error: {}",e.getMessage());
                         return Mono.error(new BadCredentialsException("Error process token: " + e.getMessage()));
                     }
                 });
@@ -103,7 +109,8 @@ public class JwtAuthenticationFilter implements WebFilter {
                     try {
                         return (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(keySpec);
                     } catch (InvalidKeySpecException | NoSuchAlgorithmException ex) {
-                        throw new RuntimeException(ex);
+                        log.error("A occurred a error in jwk: {}",ex.getMessage());
+                        throw new ErrorException(ex.getMessage());
                     }
                 });
     }
@@ -112,7 +119,7 @@ public class JwtAuthenticationFilter implements WebFilter {
         try {
             String[] tokenParts = token.split("\\.");
             if (tokenParts.length < 2) {
-                throw new IllegalArgumentException("El token no tiene el formato correcto.");
+                throw new IllegalArgumentException("Format token incorrect.");
             }
             // Decodificar el header del token (Base64 URL Safe)
             String headerJson = new String(Base64.getUrlDecoder().decode(tokenParts[0]));
@@ -124,11 +131,13 @@ public class JwtAuthenticationFilter implements WebFilter {
             String kid = (String) headerMap.get("kid");
 
             if (kid == null) {
-                throw new IllegalArgumentException("El token no tiene un KID en su header.");
+                log.error("token haven´t kid header");
+                throw new IllegalArgumentException("kid not found in token.");
             }
             return kid;
         } catch (Exception e) {
-            throw new IllegalArgumentException("Error al obtener el KID del token: " + e.getMessage(), e);
+            log.error("Obtain token error: {}",e.getMessage());
+            throw new IllegalArgumentException("Error to the obtain KID from token: " + e.getMessage(), e);
         }
     }
 }
