@@ -38,11 +38,17 @@ public class SecurityConfig {
                 .authorizeExchange(auth ->auth
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .pathMatchers(HttpMethod.GET,
+                                "/api/v1/posts/me",
                                 "/api/v1/posts/{id}",
                                 "/api/v1/posts/{id}/verify",
+                                "/api/v1/posts/count",
+                                "/api/v1/posts/data/count/{postId}",
+                                "/api/v1/posts/data/{postId}/post/{userId}/exists",
+                                "/api/v1/posts/count",
                                 "/api/v1/users/{id}/verify",
                                 "/api/v1/users/find-by-ids",
                                 "/api/v1/users/me",
+                                "/api/v1/users/{userId}/followed",
                                 "/api/v1/comments/{id}",
                                 "/api/v1/comments/{id}/verify"
                         ).hasAnyAuthority(ROLE_USER,OIDC_USER)
